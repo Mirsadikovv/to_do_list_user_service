@@ -1,0 +1,3 @@
+[submodule "to_do_list_proto"]
+	path = to_do_list_proto
+	url = https://github.com/Mirsadikovv/to_do_list_proto.git
