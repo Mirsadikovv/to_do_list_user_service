@@ -13,19 +13,11 @@ import (
 )
 
 type Store struct {
-	db              *pgxpool.Pool
-	cfg             config.Config
-	teacher         storage.TeacherRepoI
-	support_teacher storage.SupportTeacherRepoI
-	manager         storage.ManagerRepoI
-	superadmin      storage.SuperadminRepoI
-	administrator   storage.AdministratorRepoI
-	branch          storage.BranchRepoI
-	group           storage.GroupRepoI
-	student         storage.StudentRepoI
-	event           storage.EventRepoI
-	eventRegistrate storage.EventRegistrateRepoI
-	redis           storage.IRedisStorage
+	db            *pgxpool.Pool
+	cfg           config.Config
+	administrator storage.AdminRepoI
+	user          storage.UserRepoI
+	redis         storage.IRedisStorage
 }
 
 func NewPostgres(ctx context.Context, cfg config.Config, redis storage.IRedisStorage) (storage.StorageI, error) {
@@ -67,74 +59,18 @@ func (l *Store) Log(ctx context.Context, level pgx.LogLevel, msg string, data ma
 	log.Println(args...)
 }
 
-func (s *Store) Teacher() storage.TeacherRepoI {
-	if s.teacher == nil {
-		s.teacher = NewTeacherRepo(s.db)
-	}
-	return s.teacher
-}
-
-func (s *Store) SupportTeacher() storage.SupportTeacherRepoI {
-	if s.support_teacher == nil {
-		s.support_teacher = NewSupportTeacherRepo(s.db)
-	}
-	return s.support_teacher
-}
-
-func (s *Store) Manager() storage.ManagerRepoI {
-	if s.manager == nil {
-		s.manager = NewManagerRepo(s.db)
-	}
-	return s.manager
-}
-
-func (s *Store) Administrator() storage.AdministratorRepoI {
+func (s *Store) Admin() storage.AdminRepoI {
 	if s.administrator == nil {
-		s.administrator = NewAdministratorRepo(s.db)
+		s.administrator = NewAdminRepo(s.db)
 	}
 	return s.administrator
 }
 
-func (s *Store) Superadmin() storage.SuperadminRepoI {
-	if s.superadmin == nil {
-		s.superadmin = NewSuperadminRepo(s.db)
+func (s *Store) User() storage.UserRepoI {
+	if s.user == nil {
+		s.user = NewUserRepo(s.db)
 	}
-	return s.superadmin
-}
-
-func (s *Store) Branch() storage.BranchRepoI {
-	if s.branch == nil {
-		s.branch = NewBranchRepo(s.db)
-	}
-	return s.branch
-}
-
-func (s *Store) Group() storage.GroupRepoI {
-	if s.group == nil {
-		s.group = NewGroupRepo(s.db)
-	}
-	return s.group
-}
-
-func (s *Store) Student() storage.StudentRepoI {
-	if s.student == nil {
-		s.student = NewStudentRepo(s.db)
-	}
-	return s.student
-}
-
-func (s *Store) Event() storage.EventRepoI {
-	if s.event == nil {
-		s.event = NewEventRepo(s.db)
-	}
-	return s.event
-}
-
-func (s *Store) EventRegistrate() storage.EventRegistrateRepoI {
-	if s.eventRegistrate == nil {
-		s.eventRegistrate = NewEventRegistrateRepo(s.db)
-	}
-	return s.eventRegistrate
+	return s.user
 }
 
 func (s Store) Redis() storage.IRedisStorage {

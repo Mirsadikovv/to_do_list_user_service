@@ -1,7 +1,7 @@
 -- Create enum types
 CREATE TYPE gender AS ENUM ('male', 'female', 'other');
 CREATE SEQUENCE user_external_id_seq START WITH 1;
-CREATE SEQUENCE administration_external_id_seq START WITH 1;
+CREATE SEQUENCE admin_external_id_seq START WITH 1;
 
 CREATE TABLE IF NOT EXISTS users (
     id UUID PRIMARY KEY,
