@@ -127,7 +127,7 @@ func (a *UserService) Login(ctx context.Context, loginRequest *user_service.User
 	m := make(map[interface{}]interface{})
 
 	m["user_id"] = user.Id
-	m["user_role"] = config.STUDENT_ROLE
+	m["user_role"] = config.USER_ROLE
 
 	accessToken, refreshToken, err := jwt.GenJWT(m)
 	if err != nil {
@@ -184,7 +184,7 @@ func (a *UserService) RegisterConfirm(ctx context.Context, req *user_service.Use
 	var m = make(map[interface{}]interface{})
 
 	m["user_id"] = id
-	m["user_role"] = config.STUDENT_ROLE
+	m["user_role"] = config.USER_ROLE
 
 	accessToken, refreshToken, err := jwt.GenJWT(m)
 	if err != nil {

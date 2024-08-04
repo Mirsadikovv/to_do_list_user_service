@@ -17,7 +17,7 @@ CREATE TABLE IF NOT EXISTS users (
     deleted_at TIMESTAMP
 );
 
-CREATE TABLE IF NOT EXISTS administrators (
+CREATE TABLE IF NOT EXISTS admins (
     id UUID PRIMARY KEY,
     user_login VARCHAR,
     birthday DATE,

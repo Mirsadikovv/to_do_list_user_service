@@ -115,7 +115,7 @@ func (a *AdminService) Login(ctx context.Context, loginRequest *admin_service.Ad
 	m := make(map[interface{}]interface{})
 
 	m["user_id"] = admin.Id
-	m["user_role"] = config.ADMINISTRATOR_ROLE
+	m["user_role"] = config.ADMIN_ROLE
 
 	accessToken, refreshToken, err := jwt.GenJWT(m)
 	if err != nil {
@@ -173,7 +173,7 @@ func (a *AdminService) RegisterConfirm(ctx context.Context, req *admin_service.A
 	var m = make(map[interface{}]interface{})
 
 	m["user_id"] = id
-	m["user_role"] = config.ADMINISTRATOR_ROLE
+	m["user_role"] = config.ADMIN_ROLE
 
 	accessToken, refreshToken, err := jwt.GenJWT(m)
 	if err != nil {

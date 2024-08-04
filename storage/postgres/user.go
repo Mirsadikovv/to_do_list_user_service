@@ -40,12 +40,7 @@ func generateUserLogin(db *pgxpool.Pool, ctx context.Context) (string, error) {
 }
 
 func (c *userRepo) Create(ctx context.Context, req *user_service.CreateUser) (*user_service.GetUser, error) {
-	var finished_at sql.NullString
-	if req.FinishedAt == "" {
-		finished_at = sql.NullString{Valid: false}
-	} else {
-		finished_at = sql.NullString{String: req.FinishedAt, Valid: true}
-	}
+	var birthday sql.NullString
 	id := uuid.NewString()
 	pasword, err := hash.HashPassword(req.UserPassword)
 	if err != nil {
@@ -60,35 +55,28 @@ func (c *userRepo) Create(ctx context.Context, req *user_service.CreateUser) (*u
 	comtag, err := c.db.Exec(ctx, `
 		INSERT INTO users (
 			id,
-			group_id,
 			user_login,
 			birthday,
 			gender,
 			fullname,
 			email,
 			phone,
-			user_password,
-			paid_sum,
-			started_at,
-			finished_at
-		) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12
+			user_password
+		) VALUES ($1,$2,$3,$4,$5,$6,$7,$8
 		)`,
 		id,
-		req.GroupId,
 		userLogin,
-		req.Birthday,
+		birthday,
 		req.Gender,
 		req.Fullname,
 		req.Email,
 		req.Phone,
-		pasword,
-		req.PaidSum,
-		req.StartedAt,
-		finished_at)
+		pasword)
 	if err != nil {
 		log.Println("error while creating user", comtag)
 		return nil, err
 	}
+	req.Birthday = pkg.NullStringToString(birthday)
 
 	user, err := c.GetById(ctx, &user_service.UserPrimaryKey{Id: id})
 	if err != nil {
@@ -99,35 +87,22 @@ func (c *userRepo) Create(ctx context.Context, req *user_service.CreateUser) (*u
 }
 
 func (c *userRepo) Update(ctx context.Context, req *user_service.UpdateUser) (*user_service.GetUser, error) {
-	var finished_at sql.NullString
-	if req.FinishedAt == "" {
-		finished_at = sql.NullString{Valid: false}
-	} else {
-		finished_at = sql.NullString{String: req.FinishedAt, Valid: true}
-	}
+
 	_, err := c.db.Exec(ctx, `
 		UPDATE users SET
-		group_id = $1,
-		birthday = $2,
-		gender = $3,
-		fullname = $4,
-		email = $5,
-		phone = $6,
-		paid_sum = $7,
-		started_at = $8,
-		finished_at = $9,
+		birthday = $1,
+		gender = $2,
+		fullname = $3,
+		email = $4,
+		phone = $5,
 		updated_at = NOW()
-		WHERE id = $10
+		WHERE id = $6
 		`,
-		req.GroupId,
 		req.Birthday,
 		req.Gender,
 		req.Fullname,
 		req.Email,
 		req.Phone,
-		req.PaidSum,
-		req.StartedAt,
-		finished_at,
 		req.Id)
 	if err != nil {
 		log.Println("error while updating user")
@@ -146,10 +121,9 @@ func (c *userRepo) GetAll(ctx context.Context, req *user_service.GetListUserRequ
 	users := user_service.GetListUserResponse{}
 
 	var (
-		created_at  sql.NullString
-		updated_at  sql.NullString
-		started_at  sql.NullString
-		finished_at sql.NullString
+		birthday   sql.NullString
+		created_at sql.NullString
+		updated_at sql.NullString
 	)
 	filter_by_name := ""
 	offest := (req.Offset - 1) * req.Limit
@@ -158,16 +132,12 @@ func (c *userRepo) GetAll(ctx context.Context, req *user_service.GetListUserRequ
 	}
 	query := `SELECT
 				id,
-				group_id,
 				user_login,
 				birthday,
 				gender,
 				fullname,
 				email,
 				phone,
-				paid_sum,
-				started_at,
-				finished_at,
 				created_at,
 				updated_at
 			FROM users
@@ -187,23 +157,18 @@ func (c *userRepo) GetAll(ctx context.Context, req *user_service.GetListUserRequ
 		)
 		if err = rows.Scan(
 			&user.Id,
-			&user.GroupId,
 			&user.UserLogin,
-			&user.Birthday,
+			&birthday,
 			&user.Gender,
 			&user.Fullname,
 			&user.Email,
 			&user.Phone,
-			&user.PaidSum,
-			&started_at,
-			&finished_at,
 			&created_at,
 			&updated_at,
 		); err != nil {
 			return &users, err
 		}
-		user.StartedAt = pkg.NullStringToString(started_at)
-		user.FinishedAt = pkg.NullStringToString(finished_at)
+		user.Birthday = pkg.NullStringToString(birthday)
 		user.CreatedAt = pkg.NullStringToString(created_at)
 		user.UpdatedAt = pkg.NullStringToString(updated_at)
 
@@ -220,25 +185,20 @@ func (c *userRepo) GetAll(ctx context.Context, req *user_service.GetListUserRequ
 
 func (c *userRepo) GetById(ctx context.Context, id *user_service.UserPrimaryKey) (*user_service.GetUser, error) {
 	var (
-		user        user_service.GetUser
-		created_at  sql.NullString
-		updated_at  sql.NullString
-		started_at  sql.NullString
-		finished_at sql.NullString
+		user       user_service.GetUser
+		birthday   sql.NullString
+		created_at sql.NullString
+		updated_at sql.NullString
 	)
 
 	query := `SELECT
 				id,
-				group_id,
 				user_login,
 				birthday,
 				gender,
 				fullname,
 				email,
 				phone,
-				paid_sum,
-				started_at,
-				finished_at,
 				created_at,
 				updated_at
 			FROM users
@@ -248,22 +208,17 @@ func (c *userRepo) GetById(ctx context.Context, id *user_service.UserPrimaryKey)
 
 	if err := rows.Scan(
 		&user.Id,
-		&user.GroupId,
 		&user.UserLogin,
-		&user.Birthday,
+		&birthday,
 		&user.Gender,
 		&user.Fullname,
 		&user.Email,
 		&user.Phone,
-		&user.PaidSum,
-		&started_at,
-		&finished_at,
 		&created_at,
 		&updated_at); err != nil {
 		return &user, err
 	}
-	user.StartedAt = pkg.NullStringToString(started_at)
-	user.FinishedAt = pkg.NullStringToString(finished_at)
+	user.Birthday = pkg.NullStringToString(birthday)
 	user.CreatedAt = pkg.NullStringToString(created_at)
 	user.UpdatedAt = pkg.NullStringToString(updated_at)
 
@@ -352,17 +307,14 @@ func (c *userRepo) ChangePassword(ctx context.Context, pass *user_service.UserCh
 
 func (c *userRepo) GetByLogin(ctx context.Context, login string) (*user_service.GetUserByLogin, error) {
 	var (
-		user        user_service.GetUserByLogin
-		birthday    sql.NullString
-		started_at  sql.NullString
-		finished_at sql.NullString
-		created_at  sql.NullString
-		updated_at  sql.NullString
+		user       user_service.GetUserByLogin
+		birthday   sql.NullString
+		created_at sql.NullString
+		updated_at sql.NullString
 	)
 
 	query := `SELECT 
 		id, 
-		branch_id,
 		user_login,
 		birthday, 
 		gender,
@@ -370,9 +322,6 @@ func (c *userRepo) GetByLogin(ctx context.Context, login string) (*user_service.
 		email,
 		phone,
 		user_password,
-		paid_sum,
-		started_at,
-		finished_at,
 		created_at, 
 		updated_at
 		FROM users WHERE user_login = $1 AND deleted_at is null`
@@ -381,7 +330,6 @@ func (c *userRepo) GetByLogin(ctx context.Context, login string) (*user_service.
 
 	err := row.Scan(
 		&user.Id,
-		&user.GroupId,
 		&user.UserLogin,
 		&birthday,
 		&user.Gender,
@@ -389,9 +337,6 @@ func (c *userRepo) GetByLogin(ctx context.Context, login string) (*user_service.
 		&user.Email,
 		&user.Phone,
 		&user.UserPassword,
-		&user.PaidSum,
-		&started_at,
-		&finished_at,
 		&created_at,
 		&updated_at,
 	)
@@ -402,8 +347,6 @@ func (c *userRepo) GetByLogin(ctx context.Context, login string) (*user_service.
 	}
 
 	user.Birthday = pkg.NullStringToString(birthday)
-	user.StartedAt = pkg.NullStringToString(started_at)
-	user.FinishedAt = pkg.NullStringToString(finished_at)
 	user.CreatedAt = pkg.NullStringToString(created_at)
 	user.UpdatedAt = pkg.NullStringToString(updated_at)
 

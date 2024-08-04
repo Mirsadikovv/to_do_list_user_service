@@ -8,7 +8,7 @@ gen-proto-module:
 	./scripts/gen_proto.sh ${CURRENT_DIR}
 
 migrateup:
-	migrate -path ./migrations -database 'postgres://mirodil:1212@localhost:5432/crm_user_service?sslmode=disable' up
+	migrate -path ./migrations -database 'postgres://mirodil:1212@localhost:5432/to_do_list_user?sslmode=disable' up
 
 migratedown:
-	migrate -path ./migrations -database 'postgres://mirodil:1212@localhost:5432/crm_user_service?sslmode=disable' down
+	migrate -path ./migrations -database 'postgres://mirodil:1212@localhost:5432/to_do_list_user?sslmode=disable' down

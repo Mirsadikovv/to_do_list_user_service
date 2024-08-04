@@ -118,6 +118,7 @@ func (c *adminRepo) GetAll(ctx context.Context, req *adm.GetListAdminRequest) (*
 	var (
 		created_at sql.NullString
 		updated_at sql.NullString
+		birthday   sql.NullString
 	)
 	filter_by_name := ""
 	offest := (req.Offset - 1) * req.Limit
@@ -152,7 +153,7 @@ func (c *adminRepo) GetAll(ctx context.Context, req *adm.GetListAdminRequest) (*
 		if err = rows.Scan(
 			&admin.Id,
 			&admin.UserLogin,
-			&admin.Birthday,
+			&birthday,
 			&admin.Gender,
 			&admin.Fullname,
 			&admin.Email,
@@ -162,6 +163,7 @@ func (c *adminRepo) GetAll(ctx context.Context, req *adm.GetListAdminRequest) (*
 		); err != nil {
 			return &admins, err
 		}
+		admin.Birthday = pkg.NullStringToString(birthday)
 		admin.CreatedAt = pkg.NullStringToString(created_at)
 		admin.UpdatedAt = pkg.NullStringToString(updated_at)
 
@@ -179,12 +181,14 @@ func (c *adminRepo) GetAll(ctx context.Context, req *adm.GetListAdminRequest) (*
 func (c *adminRepo) GetById(ctx context.Context, id *adm.AdminPrimaryKey) (*adm.GetAdmin, error) {
 	var (
 		admin      adm.GetAdmin
+		birthday   sql.NullString
 		created_at sql.NullString
 		updated_at sql.NullString
 	)
 
 	query := `SELECT
 				id,
+				user_login,
 				birthday,
 				gender,
 				fullname,
@@ -199,7 +203,8 @@ func (c *adminRepo) GetById(ctx context.Context, id *adm.AdminPrimaryKey) (*adm.
 
 	if err := rows.Scan(
 		&admin.Id,
-		&admin.Birthday,
+		&admin.UserLogin,
+		&birthday,
 		&admin.Gender,
 		&admin.Fullname,
 		&admin.Email,
@@ -208,6 +213,7 @@ func (c *adminRepo) GetById(ctx context.Context, id *adm.AdminPrimaryKey) (*adm.
 		&updated_at); err != nil {
 		return &admin, err
 	}
+	admin.Birthday = pkg.NullStringToString(birthday)
 	admin.CreatedAt = pkg.NullStringToString(created_at)
 	admin.UpdatedAt = pkg.NullStringToString(updated_at)
 
