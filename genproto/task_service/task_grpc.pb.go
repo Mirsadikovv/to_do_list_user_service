@@ -27,6 +27,7 @@ type TaskServiceClient interface {
 	GetByID(ctx context.Context, in *TaskPrimaryKey, opts ...grpc.CallOption) (*GetTask, error)
 	GetByExternalId(ctx context.Context, in *TaskPrimaryKey, opts ...grpc.CallOption) (*GetTask, error)
 	Update(ctx context.Context, in *UpdateTask, opts ...grpc.CallOption) (*GetTask, error)
+	ChangeStatus(ctx context.Context, in *TaskChangeStatus, opts ...grpc.CallOption) (*TaskChangeStatusResp, error)
 	Delete(ctx context.Context, in *TaskPrimaryKey, opts ...grpc.CallOption) (*empty.Empty, error)
 	GetList(ctx context.Context, in *GetListTaskRequest, opts ...grpc.CallOption) (*GetListTaskResponse, error)
 }
@@ -75,6 +76,15 @@ func (c *taskServiceClient) Update(ctx context.Context, in *UpdateTask, opts ...
 	return out, nil
 }
 
+func (c *taskServiceClient) ChangeStatus(ctx context.Context, in *TaskChangeStatus, opts ...grpc.CallOption) (*TaskChangeStatusResp, error) {
+	out := new(TaskChangeStatusResp)
+	err := c.cc.Invoke(ctx, "/task_service_go.TaskService/ChangeStatus", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *taskServiceClient) Delete(ctx context.Context, in *TaskPrimaryKey, opts ...grpc.CallOption) (*empty.Empty, error) {
 	out := new(empty.Empty)
 	err := c.cc.Invoke(ctx, "/task_service_go.TaskService/Delete", in, out, opts...)
@@ -101,6 +111,7 @@ type TaskServiceServer interface {
 	GetByID(context.Context, *TaskPrimaryKey) (*GetTask, error)
 	GetByExternalId(context.Context, *TaskPrimaryKey) (*GetTask, error)
 	Update(context.Context, *UpdateTask) (*GetTask, error)
+	ChangeStatus(context.Context, *TaskChangeStatus) (*TaskChangeStatusResp, error)
 	Delete(context.Context, *TaskPrimaryKey) (*empty.Empty, error)
 	GetList(context.Context, *GetListTaskRequest) (*GetListTaskResponse, error)
 }
@@ -120,6 +131,9 @@ func (UnimplementedTaskServiceServer) GetByExternalId(context.Context, *TaskPrim
 }
 func (UnimplementedTaskServiceServer) Update(context.Context, *UpdateTask) (*GetTask, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Update not implemented")
+}
+func (UnimplementedTaskServiceServer) ChangeStatus(context.Context, *TaskChangeStatus) (*TaskChangeStatusResp, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ChangeStatus not implemented")
 }
 func (UnimplementedTaskServiceServer) Delete(context.Context, *TaskPrimaryKey) (*empty.Empty, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Delete not implemented")
@@ -211,6 +225,24 @@ func _TaskService_Update_Handler(srv interface{}, ctx context.Context, dec func(
 	return interceptor(ctx, in, info, handler)
 }
 
+func _TaskService_ChangeStatus_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(TaskChangeStatus)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(TaskServiceServer).ChangeStatus(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/task_service_go.TaskService/ChangeStatus",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(TaskServiceServer).ChangeStatus(ctx, req.(*TaskChangeStatus))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _TaskService_Delete_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(TaskPrimaryKey)
 	if err := dec(in); err != nil {
@@ -269,6 +301,10 @@ var TaskService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "Update",
 			Handler:    _TaskService_Update_Handler,
+		},
+		{
+			MethodName: "ChangeStatus",
+			Handler:    _TaskService_ChangeStatus_Handler,
 		},
 		{
 			MethodName: "Delete",
